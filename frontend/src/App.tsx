@@ -23,7 +23,8 @@ function App() {
     if (!showDashboard) return
 
     // Initialize Socket.IO connection with better error handling
-    const newSocket = io('http://localhost:5000', {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
+    const newSocket = io(backendUrl, {
       transports: ['polling', 'websocket'],
       reconnection: true,
       reconnectionDelay: 1000,
