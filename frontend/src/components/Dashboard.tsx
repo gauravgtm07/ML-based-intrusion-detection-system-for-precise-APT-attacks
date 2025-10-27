@@ -24,7 +24,8 @@ export default function Dashboard({ alerts, stats }: DashboardProps) {
 
   const fetchThreatData = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/threats')
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
+      const response = await axios.get(`${backendUrl}/api/threats`)
       setThreatData(response.data)
       setLoading(false)
     } catch (error) {
