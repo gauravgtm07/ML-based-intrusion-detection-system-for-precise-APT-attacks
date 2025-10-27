@@ -12,7 +12,7 @@ interface DashboardProps {
   socket: Socket | null
 }
 
-export default function Dashboard({ alerts, stats, socket }: DashboardProps) {
+export default function Dashboard({ alerts, stats }: DashboardProps) {
   const [threatData, setThreatData] = useState<ThreatData | null>(null)
   const [loading, setLoading] = useState(true)
 

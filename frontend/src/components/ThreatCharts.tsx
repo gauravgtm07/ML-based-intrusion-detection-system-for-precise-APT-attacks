@@ -88,7 +88,7 @@ export default function ThreatCharts({ threatData }: ThreatChartsProps) {
                 fill="#8884d8"
                 dataKey="value"
               >
-                {threatData.threat_distribution.map((entry, index) => (
+                {threatData.threat_distribution.map((_entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
