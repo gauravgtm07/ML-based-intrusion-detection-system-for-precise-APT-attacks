@@ -67,10 +67,10 @@ port_scan_tracker = defaultdict(lambda: {'ports': set(), 'last_seen': datetime.n
 syn_flood_tracker = defaultdict(lambda: {'count': 0, 'last_seen': datetime.now()})
 packet_rate_tracker = defaultdict(lambda: {'count': 0, 'last_seen': datetime.now()})
 
-# Thresholds
-PORT_SCAN_THRESHOLD = 10
-SYN_FLOOD_THRESHOLD = 50
-PACKET_RATE_THRESHOLD = 100
+# Thresholds (adjusted for real-world traffic)
+PORT_SCAN_THRESHOLD = 20      # More than 20 different ports = likely port scan
+SYN_FLOOD_THRESHOLD = 200     # 200 SYN packets in short time = flood
+PACKET_RATE_THRESHOLD = 500   # 500 packets from one IP = high rate
 
 # Suspicious ports
 SUSPICIOUS_PORTS = {
@@ -113,6 +113,20 @@ def analyze_packet(packet):
         # Skip localhost traffic
         if src_ip.startswith('127.') or dst_ip.startswith('127.'):
             return
+        
+        # Skip broadcast and multicast (normal network traffic)
+        if dst_ip.endswith('.255') or dst_ip.startswith('224.') or dst_ip.startswith('239.'):
+            return
+        
+        # Skip common local network discovery (MDNS, SSDP, NBNS)
+        if TCP in packet:
+            port = packet[TCP].dport
+            if port in [5353, 1900, 137, 138]:  # MDNS, SSDP, NetBIOS
+                return
+        elif UDP in packet:
+            port = packet[UDP].dport
+            if port in [5353, 1900, 137, 138]:  # MDNS, SSDP, NetBIOS
+                return
         
         # Port scan detection
         if TCP in packet:
