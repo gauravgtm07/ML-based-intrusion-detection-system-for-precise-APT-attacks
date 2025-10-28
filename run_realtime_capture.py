@@ -51,7 +51,11 @@ sio = socketio.Client()
 
 try:
     sio.connect('http://localhost:5000')
-    print("✅ Connected to backend server\n")
+    print("✅ Connected to backend server")
+    
+    # Signal backend to enable real-time mode
+    sio.emit('enable_realtime_mode', {'enabled': True})
+    print("✅ Real-time mode enabled on backend\n")
 except Exception as e:
     print(f"❌ Could not connect to backend: {e}")
     print("   Make sure the backend is running: python backend/app.py")
@@ -177,13 +181,15 @@ def analyze_packet(packet):
         # Packet rate tracking
         packet_rate_tracker[src_ip]['count'] += 1
         if packet_rate_tracker[src_ip]['count'] >= PACKET_RATE_THRESHOLD:
+            # Get port from packet if available
+            port = packet[TCP].dport if TCP in packet else (packet[UDP].dport if UDP in packet else 0)
             send_alert({
                 'threat_type': 'DDoS Attack',
                 'severity': 'Critical',
                 'source_ip': src_ip,
                 'destination_ip': dst_ip,
                 'description': f'High packet rate: {packet_rate_tracker[src_ip]["count"]} packets',
-                'port': 0,
+                'port': port if port != 0 else None,
                 'protocol': 'Multiple'
             })
             packet_rate_tracker[src_ip]['count'] = 0
@@ -203,6 +209,12 @@ try:
     sniff(prn=analyze_packet, store=False)
 except KeyboardInterrupt:
     print("\n\n🛑 Stopping packet capture...")
+    # Disable real-time mode on backend
+    try:
+        sio.emit('enable_realtime_mode', {'enabled': False})
+        print("✅ Real-time mode disabled on backend")
+    except:
+        pass
     sio.disconnect()
     print(f"✅ Captured {alert_count} threats")
     print("\n👋 Real-time monitoring stopped. Goodbye!\n")

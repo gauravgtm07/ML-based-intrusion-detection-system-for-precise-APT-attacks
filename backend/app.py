@@ -375,6 +375,15 @@ def handle_stats_request():
     """Handle stats request via WebSocket"""
     emit('stats_update', network_stats)
 
+@socketio.on('enable_realtime_mode')
+def handle_enable_realtime(data):
+    """Enable real-time mode and disable simulation"""
+    global REAL_TIME_MODE
+    REAL_TIME_MODE = data.get('enabled', True)
+    mode = 'REAL-TIME' if REAL_TIME_MODE else 'SIMULATION'
+    print(f'🔄 Mode switched to: {mode}')
+    emit('mode_changed', {'mode': mode, 'realtime': REAL_TIME_MODE})
+
 @socketio.on('trigger_alert')
 def handle_trigger_alert(data):
     """Handle alert triggered from real-time packet capture"""
