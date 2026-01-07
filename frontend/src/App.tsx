@@ -3,11 +3,17 @@ import { io, Socket } from 'socket.io-client'
 import Dashboard from './components/Dashboard'
 import Header from './components/Header'
 import LandingPage from './components/LandingPage'
+import AnalyticsPage from './components/AnalyticsPage'
+import SettingsPage from './components/SettingsPage'
 import { Alert, NetworkStats } from './types'
 import AuthWrapper from './components/Auth/AuthWrapper'
+import { notificationService } from './services/notificationService'
+
+type Page = 'dashboard' | 'analytics' | 'settings'
 
 function App() {
   const [showDashboard, setShowDashboard] = useState(false)
+  const [currentPage, setCurrentPage] = useState<Page>('dashboard')
   const [socket, setSocket] = useState<Socket | null>(null)
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [stats, setStats] = useState<NetworkStats>({
@@ -48,6 +54,9 @@ function App() {
 
     newSocket.on('new_alert', (alert: Alert) => {
       setAlerts(prev => [alert, ...prev].slice(0, 50))
+      
+      // Trigger notification
+      notificationService.handleAlert(alert)
     })
 
     newSocket.on('stats_update', (newStats: NetworkStats) => {
@@ -71,12 +80,27 @@ function App() {
         <LandingPage onEnterDashboard={() => setShowDashboard(true)} />
       ) : (
         <div className="min-h-screen bg-background">
-          <Header isConnected={isConnected} />
-          <Dashboard 
-            alerts={alerts} 
-            stats={stats}
-            socket={socket}
+          <Header 
+            isConnected={isConnected} 
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
           />
+          
+          {currentPage === 'dashboard' && (
+            <Dashboard 
+              alerts={alerts} 
+              stats={stats}
+              socket={socket}
+            />
+          )}
+          
+          {currentPage === 'analytics' && (
+            <AnalyticsPage alerts={alerts} />
+          )}
+          
+          {currentPage === 'settings' && (
+            <SettingsPage />
+          )}
         </div>
       )}
     </AuthWrapper>

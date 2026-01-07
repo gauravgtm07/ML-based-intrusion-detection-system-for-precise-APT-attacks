@@ -1,0 +1,58 @@
+===============================================
+  INTRUSION DETECTION SYSTEM - QUICK START
+===============================================
+
+PROJECT PATH:
+C:\Users\AMAR BIRADAR\OneDrive\Desktop\Intrusion Project\Intrusion Project
+
+===============================================
+TERMINAL 1: BACKEND SERVER
+===============================================
+cd "C:\Users\AMAR BIRADAR\OneDrive\Desktop\Intrusion Project\Intrusion Project\backend"
+venv\Scripts\activate
+python app.py
+
+Wait for: "🚀 IDS Backend Server Starting..."
+
+===============================================
+TERMINAL 2: FRONTEND DASHBOARD
+===============================================
+cd "C:\Users\AMAR BIRADAR\OneDrive\Desktop\Intrusion Project\Intrusion Project\frontend"
+npm run dev
+
+Open browser: http://localhost:5174
+
+===============================================
+TERMINAL 3: ATTACK SIMULATOR (OPTIONAL)
+===============================================
+cd "C:\Users\AMAR BIRADAR\OneDrive\Desktop\Intrusion Project\Intrusion Project"
+python attack_simulator.py
+
+Choose attack options to test the system
+
+===============================================
+REAL-TIME MONITORING (RUN AS ADMINISTRATOR)
+===============================================
+cd "C:\Users\AMAR BIRADAR\OneDrive\Desktop\Intrusion Project\Intrusion Project"
+python start_realtime_monitoring.py
+
+Detects REAL threats from network traffic!
+
+===============================================
+STOP EVERYTHING
+===============================================
+Press Ctrl+C in each terminal window
+
+===============================================
+FEATURES ENABLED
+===============================================
+✅ Dashboard: http://localhost:5174
+✅ Backend API: http://localhost:5000
+✅ Real-time Alerts
+✅ Browser Notifications
+✅ Alert Sounds
+✅ Email Alerts (amarmbbs00@gmail.com)
+✅ Analytics Page
+✅ Settings Page
+
+===============================================

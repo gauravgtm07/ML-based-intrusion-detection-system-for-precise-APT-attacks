@@ -8,6 +8,14 @@ import threading
 import os
 import sys
 
+# Import email service
+try:
+    from email_service import email_service
+    EMAIL_SERVICE_AVAILABLE = True
+except ImportError:
+    EMAIL_SERVICE_AVAILABLE = False
+    print("⚠️  Email service not available.")
+
 # Import packet sniffer (optional - will work in simulation mode if not available)
 try:
     from packet_sniffer import PacketAnalyzer
@@ -377,6 +385,33 @@ def trigger_alert():
         'alert': alert,
         'message': 'Alert triggered successfully'
     })
+
+@app.route('/api/send-email-alert', methods=['POST'])
+def send_email_alert():
+    """Send email alert"""
+    data = request.get_json()
+    
+    # Log the email alert request
+    print(f"📧 Email Alert Request:")
+    print(f"   Threat: {data.get('threat_type')}")
+    print(f"   Severity: {data.get('severity')}")
+    print(f"   Source IP: {data.get('source_ip')}")
+    print(f"   Description: {data.get('description')}")
+    
+    # Send email if service is available
+    if EMAIL_SERVICE_AVAILABLE:
+        result = email_service.send_alert_email(data)
+        return jsonify({
+            'status': result.get('status'),
+            'message': result.get('message'),
+            'timestamp': datetime.now().isoformat()
+        })
+    else:
+        return jsonify({
+            'status': 'unavailable',
+            'message': 'Email service not configured. See backend/.env.example for setup instructions.',
+            'timestamp': datetime.now().isoformat()
+        })
 
 @app.route('/api/realtime/start', methods=['POST'])
 def start_realtime_capture():
