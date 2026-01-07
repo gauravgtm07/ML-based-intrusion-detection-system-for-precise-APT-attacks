@@ -54,6 +54,10 @@ function App() {
       setStats(newStats)
     })
 
+    newSocket.on('alert_updated', (updatedAlert: Alert) => {
+      setAlerts(prev => prev.map(a => a.id === updatedAlert.id ? updatedAlert : a))
+    })
+
     setSocket(newSocket)
 
     return () => {

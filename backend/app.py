@@ -31,6 +31,7 @@ socketio = SocketIO(
 # Data storage
 alerts = []
 threat_data = []
+blocked_ips_list = []  # List of blocked IP addresses
 network_stats = {
     'total_packets': 0,
     'threats_detected': 0,
@@ -122,7 +123,7 @@ def handle_real_alert(alert_data):
 def background_monitoring():
     """Simulate real-time monitoring in background (only when not in real-time mode)"""
     while True:
-        time.sleep(random.randint(3, 8))
+        time.sleep(random.uniform(6, 7.5))  # 8-10 attacks per minute
         
         # Skip simulation if real-time mode is active
         if REAL_TIME_MODE:
@@ -225,17 +226,113 @@ def block_ip():
     """Block an IP address"""
     data = request.get_json()
     ip_address = data.get('ip')
+    alert_id = data.get('alert_id')
     
     if not ip_address:
         return jsonify({'error': 'IP address required'}), 400
     
-    network_stats['blocked_ips'] += 1
+    # Add to blocked IPs list if not already blocked
+    if ip_address not in blocked_ips_list:
+        blocked_ips_list.append(ip_address)
+        network_stats['blocked_ips'] += 1
+    
+    # Update the alert status to 'Blocked' if alert_id is provided
+    if alert_id:
+        for alert in alerts:
+            if alert['id'] == alert_id:
+                alert['status'] = 'Blocked'
+                # Emit updated alert
+                socketio.emit('alert_updated', alert)
+                break
     
     return jsonify({
         'status': 'success',
         'message': f'IP {ip_address} has been blocked',
-        'timestamp': datetime.now().isoformat()
+        'timestamp': datetime.now().isoformat(),
+        'blocked_ip': ip_address
     })
+
+@app.route('/api/blocked-ips', methods=['GET'])
+def get_blocked_ips():
+    """Get list of all blocked IPs"""
+    return jsonify({
+        'blocked_ips': blocked_ips_list,
+        'total': len(blocked_ips_list)
+    })
+
+@app.route('/api/alerts/export', methods=['GET'])
+def export_alerts_csv():
+    """Export alerts to CSV format"""
+    import csv
+    from io import StringIO
+    
+    # Create CSV in memory
+    output = StringIO()
+    writer = csv.writer(output)
+    
+    # Write header
+    writer.writerow(['ID', 'Timestamp', 'Source IP', 'Destination IP', 'Threat Type', 
+                     'Severity', 'Status', 'Description', 'Port', 'Protocol'])
+    
+    # Write data
+    for alert in alerts:
+        writer.writerow([
+            alert['id'],
+            alert['timestamp'],
+            alert['source_ip'],
+            alert['destination_ip'],
+            alert['threat_type'],
+            alert['severity'],
+            alert['status'],
+            alert['description'],
+            alert['port'],
+            alert['protocol']
+        ])
+    
+    # Get CSV content
+    csv_content = output.getvalue()
+    output.close()
+    
+    # Return as downloadable file
+    from flask import Response
+    return Response(
+        csv_content,
+        mimetype='text/csv',
+        headers={'Content-Disposition': f'attachment; filename=alerts_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'}
+    )
+
+@app.route('/api/alerts/filter-by-time', methods=['GET'])
+def filter_alerts_by_time():
+    """Filter alerts by time period"""
+    start_time = request.args.get('start_time')
+    end_time = request.args.get('end_time')
+    
+    if not start_time or not end_time:
+        return jsonify({'error': 'start_time and end_time are required'}), 400
+    
+    try:
+        # Parse time strings - strip timezone info to make them naive
+        start_dt = datetime.fromisoformat(start_time.replace('Z', '').split('+')[0].split('-05:30')[0])
+        end_dt = datetime.fromisoformat(end_time.replace('Z', '').split('+')[0].split('-05:30')[0])
+        
+        # Filter alerts
+        filtered_alerts = []
+        for alert in alerts:
+            # Parse alert timestamp - strip timezone info to make it naive
+            alert_timestamp_str = alert['timestamp'].replace('Z', '').split('+')[0].split('-05:30')[0]
+            alert_dt = datetime.fromisoformat(alert_timestamp_str)
+            
+            if start_dt <= alert_dt <= end_dt:
+                filtered_alerts.append(alert)
+        
+        return jsonify({
+            'alerts': filtered_alerts,
+            'total': len(filtered_alerts),
+            'start_time': start_time,
+            'end_time': end_time
+        })
+    except Exception as e:
+        return jsonify({'error': f'Invalid time format: {str(e)}'}), 400
 
 @app.route('/api/trigger-alert', methods=['POST'])
 def trigger_alert():

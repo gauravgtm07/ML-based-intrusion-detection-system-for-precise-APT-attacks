@@ -4,6 +4,7 @@ import axios from 'axios'
 import StatsCards from './StatsCards'
 import AlertsList from './AlertsList'
 import ThreatCharts from './ThreatCharts'
+import ExportButton from './ExportButton'
 import { Alert, NetworkStats, ThreatData } from '../types'
 
 interface DashboardProps {
@@ -12,7 +13,7 @@ interface DashboardProps {
   socket: Socket | null
 }
 
-export default function Dashboard({ alerts, stats }: DashboardProps) {
+export default function Dashboard({ alerts, stats, socket }: DashboardProps) {
   const [threatData, setThreatData] = useState<ThreatData | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -38,6 +39,10 @@ export default function Dashboard({ alerts, stats }: DashboardProps) {
     <main className="container mx-auto px-4 py-6 space-y-6">
       <StatsCards stats={stats} />
       
+      <div className="flex justify-end">
+        <ExportButton />
+      </div>
+      
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           {!loading && threatData && (
@@ -46,7 +51,7 @@ export default function Dashboard({ alerts, stats }: DashboardProps) {
         </div>
         
         <div className="lg:col-span-1">
-          <AlertsList alerts={alerts} />
+          <AlertsList alerts={alerts} socket={socket} />
         </div>
       </div>
     </main>

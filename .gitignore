@@ -1,46 +1,26 @@
 # Python
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-venv/
+*.pyc
+*.pyo
+*.pyd
 env/
-ENV/
-*.egg-info/
-dist/
-build/
-*.db
-*.sqlite3
+venv/
+.env
+.env.*
 
 # Node
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
 dist/
-build/
-.vite/
 
-# IDE
+# Data and models (do not commit big datasets or large model binaries)
+data/data/
+data/models/
+data/dataset/
+*.h5
+*.pkl
+*.csv
+
+# VSCode / OS
 .vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
 .DS_Store
 Thumbs.db
-
-# Environment
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Logs
-logs/
-*.log
